@@ -40,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local AI coding-assistant config (not part of the shipped app)
+CLAUDE.md
+AGENTS.md
+.cursor/
+.cursorrules
+.windsurf/
+.aider*
