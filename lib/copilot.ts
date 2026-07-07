@@ -15,6 +15,19 @@ const GENERIC_STRUCTURE_BULLETS = [
 ];
 
 function extractLatestQuestion(transcript: string): string {
+  // Speaker-labeled transcripts (from the live meeting copilot) look like
+  // "Them: ...\nYou: ...\nThem: ...". Prefer the other person's most recent
+  // question over anything the user themselves said.
+  const themLines = transcript
+    .split("\n")
+    .filter((line) => line.startsWith("Them:"))
+    .map((line) => line.slice("Them:".length).trim())
+    .filter(Boolean);
+  if (themLines.length > 0) {
+    const lastThemQuestion = [...themLines].reverse().find((s) => s.endsWith("?"));
+    return lastThemQuestion ?? themLines[themLines.length - 1];
+  }
+
   const sentences = transcript
     .split(/(?<=[.?!])\s+/)
     .map((s) => s.trim())

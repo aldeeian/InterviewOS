@@ -24,7 +24,7 @@ const BULLET_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-const SYSTEM_PROMPT = `You are a live meeting copilot. The user is in a real meeting and speaking out loud; you see a rolling transcript of what has been said so far (their own voice and whoever they're talking to, not clearly separated by speaker).
+const SYSTEM_PROMPT = `You are a live meeting copilot. The user is in a real meeting; you see a rolling transcript of what has been said so far. When the transcript is speaker-labeled ("You: ..." / "Them: ..."), "Them" is whoever the user is talking to and "You" is the user themselves — always respond to the other person's most recent question or point, not something the user already said.
 
 Given the transcript and the user's resume context, produce up to 4 short talking-point bullets they could use right now to answer or contribute to the conversation.
 
