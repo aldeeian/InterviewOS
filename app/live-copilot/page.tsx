@@ -23,9 +23,9 @@ export default function LiveCopilotPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Live Meeting Copilot</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Listens to your own mic during a meeting you&apos;re in and shows you suggested
-            talking points, personalized to your resume — visible only on your own screen,
-            same as any notes app.
+            Listens to your mic and/or your Zoom/Google Meet tab during a meeting you&apos;re in,
+            and shows you suggested talking points personalized to your resume — visible only on
+            your own screen, same as any notes app.
           </p>
         </div>
 
@@ -33,8 +33,10 @@ export default function LiveCopilotPage() {
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
             This is a personal aid for your own meetings — not disguised, and not meant to be
-            hidden from anyone you&apos;re screen-sharing with. All processing is local/mocked;
-            audio never leaves your browser in this build.
+            hidden from anyone you&apos;re on the call with. Sharing tab audio surfaces a visible,
+            un-hideable browser recording indicator for as long as it&apos;s on. Only use it in
+            meetings where doing so is appropriate and, where required, disclosed to other
+            participants.
           </span>
         </div>
 
