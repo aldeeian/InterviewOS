@@ -48,3 +48,6 @@ AGENTS.md
 .cursorrules
 .windsurf/
 .aider*
+
+.vercel
+.env*
