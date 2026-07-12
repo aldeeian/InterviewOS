@@ -4,10 +4,30 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useEffect, useState } from "react";
 import type { InterviewSession, SessionSetup, Track } from "./types";
+import type { AnswerStyle } from "./ai/copilot-prompt";
+
+export interface CopilotContext {
+  /** The job, work, or assignment the user needs help with. */
+  jobDescription: string;
+  /** Resume + anything else the AI should know (docs, notes, likely questions). */
+  knowledgeBase: string;
+  /** Standing instructions for how the AI should answer and behave. */
+  behaviorInstructions: string;
+}
+
+export const EMPTY_COPILOT_CONTEXT: CopilotContext = {
+  jobDescription: "",
+  knowledgeBase: "",
+  behaviorInstructions: "",
+};
 
 interface InterviewStore {
   tracks: Track[];
   sessions: InterviewSession[];
+  copilotContext: CopilotContext;
+  setCopilotContext: (patch: Partial<CopilotContext>) => void;
+  answerStyle: AnswerStyle;
+  setAnswerStyle: (style: AnswerStyle) => void;
   addTrack: (track: Track) => void;
   createSession: (setup: SessionSetup) => InterviewSession;
   getSession: (id: string) => InterviewSession | undefined;
@@ -25,6 +45,13 @@ export const useInterviewStore = create<InterviewStore>()(
     (set, get) => ({
       tracks: [],
       sessions: [],
+      copilotContext: EMPTY_COPILOT_CONTEXT,
+
+      setCopilotContext: (patch) =>
+        set((state) => ({ copilotContext: { ...state.copilotContext, ...patch } })),
+
+      answerStyle: "natural",
+      setAnswerStyle: (style) => set({ answerStyle: style }),
 
       addTrack: (track) => set((state) => ({ tracks: [track, ...state.tracks] })),
 
