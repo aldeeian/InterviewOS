@@ -6,12 +6,14 @@ import { ExternalLink, Info, PictureInPicture2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContextPanel } from "@/components/copilot/context-panel";
 import { CopilotPanel } from "@/components/copilot/copilot-panel";
 import { FloatCard } from "@/components/copilot/float-card";
 import { PipWindow, usePiPSupported } from "@/components/copilot/pip-window";
-import { useInterviewStore } from "@/lib/store";
+import { useInterviewStore, useStoreHydrated } from "@/lib/store";
 
 export default function LiveCopilotPage() {
+  const hydrated = useStoreHydrated();
   const track = useInterviewStore((s) => s.latestTrack());
   const [floatOpen, setFloatOpen] = useState(false);
   const [pipOpen, setPipOpen] = useState(false);
@@ -40,7 +42,7 @@ export default function LiveCopilotPage() {
           </span>
         </div>
 
-        {!track && (
+        {hydrated && !track && (
           <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm">
             No resume on file yet —{" "}
             <Link href="/intake" className="font-medium text-primary hover:underline">
@@ -49,6 +51,8 @@ export default function LiveCopilotPage() {
             to get personalized suggestions instead of generic ones.
           </div>
         )}
+
+        <ContextPanel />
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">

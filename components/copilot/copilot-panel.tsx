@@ -7,15 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSpeechRecognition } from "@/lib/speech";
 import { useLiveMeetingTranscript } from "@/lib/deepgram-live";
-import { useInterviewStore } from "@/lib/store";
+import { useInterviewStore, useStoreHydrated } from "@/lib/store";
+import type { AnswerStyle } from "@/lib/ai/copilot-prompt";
 
-type SuggestionSource = "gemini" | "claude" | "heuristic" | "none";
+type SuggestionSource = "openai" | "gemini" | "claude" | "heuristic" | "none";
+
+const STYLE_OPTIONS: { value: AnswerStyle; label: string; title: string }[] = [
+  { value: "bullets", label: "Bullets", title: "5-8 scannable speakable points" },
+  { value: "quick", label: "Quick", title: "Fastest possible 2-3 sentence answer" },
+  { value: "natural", label: "Natural", title: "Full flowing spoken answer (7-8 points)" },
+  { value: "star", label: "STAR", title: "Situation / Task / Action / Result story" },
+];
 
 export function CopilotPanel({ compact = false }: { compact?: boolean }) {
   const legacyMic = useSpeechRecognition();
   const live = useLiveMeetingTranscript();
+  const hydrated = useStoreHydrated();
   const track = useInterviewStore((s) => s.latestTrack());
-  const [bullets, setBullets] = useState<string[]>([]);
+  const copilotContext = useInterviewStore((s) => s.copilotContext);
+  const answerStyle = useInterviewStore((s) => s.answerStyle);
+  const setAnswerStyle = useInterviewStore((s) => s.setAnswerStyle);
+  const [answer, setAnswer] = useState("");
   const [source, setSource] = useState<SuggestionSource>("none");
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,11 +39,14 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
   const transcript = useLiveMode ? live.fullTranscript : legacyMic.transcript;
 
   useEffect(() => {
-    if (!transcript.trim() || transcript === lastSentRef.current) return;
+    // Key the dedupe on style + transcript so switching styles regenerates
+    // the answer even when the transcript hasn't moved.
+    const requestKey = `${answerStyle}|${transcript}`;
+    if (!transcript.trim() || requestKey === lastSentRef.current) return;
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      lastSentRef.current = transcript;
+      lastSentRef.current = requestKey;
       setLoading(true);
       try {
         const res = await fetch("/api/copilot/suggest", {
@@ -41,10 +56,14 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
             transcript,
             resumeText: track?.resumeText ?? "",
             resumeSkills: track?.extractedResumeSkills ?? [],
+            jobDescription: copilotContext.jobDescription,
+            knowledgeBase: copilotContext.knowledgeBase,
+            behaviorInstructions: copilotContext.behaviorInstructions,
+            answerStyle,
           }),
         });
         const data = await res.json();
-        setBullets(data.bullets ?? []);
+        setAnswer(data.answer ?? "");
         setSource(data.source ?? "heuristic");
       } catch {
         // silent — suggestions are best-effort
@@ -56,7 +75,7 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [transcript, track]);
+  }, [transcript, track, copilotContext, answerStyle]);
 
   return (
     <div className={cn("flex flex-col gap-3", compact ? "p-3" : "p-5")}>
@@ -64,7 +83,7 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
           <span className={cn("font-medium", compact ? "text-xs" : "text-sm")}>
-            {track ? "Personalized to your resume" : "No resume loaded"}
+            {!hydrated ? "Loading…" : track ? "Personalized to your resume" : "No resume loaded"}
           </span>
         </div>
 
@@ -131,10 +150,16 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <p className={cn("font-medium text-foreground", compact ? "text-xs" : "text-sm")}>
-            Suggested talking points {loading && "· updating…"}
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <p className={cn("font-medium text-foreground", compact ? "text-xs" : "text-sm")}>
+              Your answer {loading && "· updating…"}
+            </p>
+          {source === "openai" && (
+            <Badge variant="accent" className="text-[10px]">
+              OpenAI
+            </Badge>
+          )}
           {source === "gemini" && (
             <Badge variant="accent" className="text-[10px]">
               Gemini
@@ -150,20 +175,40 @@ export function CopilotPanel({ compact = false }: { compact?: boolean }) {
               Offline mode
             </Badge>
           )}
+          </div>
+          <div className="flex overflow-hidden rounded-md border border-border" role="group" aria-label="Answer style">
+            {STYLE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                title={option.title}
+                onClick={() => setAnswerStyle(option.value)}
+                className={cn(
+                  "px-2 py-1 font-medium transition-colors",
+                  compact ? "text-[10px]" : "text-xs",
+                  answerStyle === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-transparent text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-        {bullets.length === 0 ? (
+        {!answer ? (
           <p className="text-xs text-muted-foreground">
-            Points will appear here shortly after you start speaking.
+            A full, ready-to-say answer will appear here shortly after they start speaking.
           </p>
         ) : (
-          <ul className={cn("space-y-1.5", compact ? "text-xs" : "text-sm")}>
-            {bullets.map((b, i) => (
-              <li key={i} className="flex items-start gap-2">
-                <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-primary" />
-                <span>{b}</span>
-              </li>
-            ))}
-          </ul>
+          <div
+            className={cn(
+              "scrollbar-thin overflow-y-auto whitespace-pre-wrap rounded-md border border-primary/20 bg-primary/5 leading-relaxed",
+              compact ? "max-h-48 p-2.5 text-xs" : "max-h-80 p-4 text-[15px]"
+            )}
+          >
+            {answer}
+          </div>
         )}
       </div>
     </div>
