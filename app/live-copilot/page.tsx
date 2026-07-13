@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, Info, PictureInPicture2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,15 @@ import { useInterviewStore, useStoreHydrated } from "@/lib/store";
 export default function LiveCopilotPage() {
   const hydrated = useStoreHydrated();
   const track = useInterviewStore((s) => s.latestTrack());
+  const clearCopilotHistory = useInterviewStore((s) => s.clearCopilotHistory);
   const [floatOpen, setFloatOpen] = useState(false);
   const [pipOpen, setPipOpen] = useState(false);
   const pipSupported = usePiPSupported();
+
+  // Suggestion history is session-scoped: each visit to this page starts fresh.
+  useEffect(() => {
+    clearCopilotHistory();
+  }, [clearCopilotHistory]);
 
   return (
     <AppShell>
