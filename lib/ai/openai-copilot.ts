@@ -30,6 +30,28 @@ const ANSWER_JSON_SCHEMA = {
 } as const;
 
 /**
+ * Streams the answer as plain-text deltas. Throws on any failure so the route
+ * can fall through to the next provider. There is a single env-configured
+ * model on this endpoint, so there is no speed variant here.
+ */
+export async function* streamSpokenAnswerWithOpenAI(input: CopilotPromptInput): AsyncGenerator<string> {
+  const openai = getClient();
+  const stream = await openai.chat.completions.create({
+    model: MODEL,
+    max_tokens: 1200,
+    stream: true,
+    messages: [
+      { role: "system", content: buildCopilotSystemPrompt(input) },
+      { role: "user", content: buildCopilotUserMessage(input) },
+    ],
+  });
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content;
+    if (delta) yield delta;
+  }
+}
+
+/**
  * Returns null on any failure — missing key, rate limit, network error, or a
  * malformed response — so the caller can fall back to the next provider or
  * the local heuristic engine instead of showing an error.

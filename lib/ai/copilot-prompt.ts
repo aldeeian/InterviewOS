@@ -1,6 +1,10 @@
 export const ANSWER_STYLES = ["bullets", "quick", "natural", "star"] as const;
 export type AnswerStyle = (typeof ANSWER_STYLES)[number];
 
+/** "deep" = current default models; "fast" = cheaper/lower-latency models where a provider has one. */
+export const COPILOT_SPEEDS = ["deep", "fast"] as const;
+export type CopilotSpeed = (typeof COPILOT_SPEEDS)[number];
+
 export interface CopilotPromptInput {
   transcript: string;
   resumeText: string;
@@ -13,6 +17,10 @@ export interface CopilotPromptInput {
   behaviorInstructions?: string;
   /** How the answer should be shaped; defaults to "natural". */
   answerStyle?: AnswerStyle;
+  /** The most recent question extracted from the transcript, when one was detected. */
+  lastDetectedQuestion?: string;
+  /** Running summary of the older portion of a long meeting; `transcript` then holds only the recent tail. */
+  transcriptSummary?: string;
 }
 
 const STYLE_INSTRUCTIONS: Record<AnswerStyle, string> = {
@@ -94,7 +102,19 @@ export function buildCopilotUserMessage(input: CopilotPromptInput): string {
     );
   }
 
+  const transcriptSummary = input.transcriptSummary?.trim();
+  if (transcriptSummary) {
+    sections.push(`Earlier in the meeting (summarized):\n${clip(transcriptSummary)}`);
+  }
+
   sections.push(`Live transcript so far:\n${input.transcript}`);
+
+  const lastDetectedQuestion = input.lastDetectedQuestion?.trim();
+  if (lastDetectedQuestion) {
+    sections.push(
+      `The specific question to answer right now (extracted from the transcript; use the full transcript above only for tone and flow):\n${lastDetectedQuestion}`
+    );
+  }
 
   return sections.join("\n\n");
 }
