@@ -60,6 +60,9 @@ interface UseLiveMeetingTranscriptResult {
   configured: boolean | null;
   micActive: boolean;
   tabAudioActive: boolean;
+  /** Live streams exposed for UI-side audio level metering; null when inactive. */
+  micStream: MediaStream | null;
+  tabStream: MediaStream | null;
   entries: TranscriptEntry[];
   fullTranscript: string;
   error: string | null;
@@ -72,6 +75,8 @@ interface UseLiveMeetingTranscriptResult {
 export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
   const [micActive, setMicActive] = useState(false);
   const [tabAudioActive, setTabAudioActive] = useState(false);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
+  const [tabStream, setTabStream] = useState<MediaStream | null>(null);
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [configured, setConfigured] = useState<boolean | null>(null);
@@ -124,6 +129,7 @@ export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
     micRecorderRef.current = null;
     micSocketRef.current = null;
     micStreamRef.current = null;
+    setMicStream(null);
     setMicActive(false);
   }, []);
 
@@ -134,6 +140,7 @@ export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
     tabRecorderRef.current = null;
     tabSocketRef.current = null;
     tabStreamRef.current = null;
+    setTabStream(null);
     setTabAudioActive(false);
   }, []);
 
@@ -157,6 +164,7 @@ export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStreamRef.current = stream;
+      setMicStream(stream);
       const socket = openDeepgramSocket(key, (text, isFinal) => upsertEntry("you", text, isFinal));
       micSocketRef.current = socket;
       socket.onopen = () => {
@@ -185,6 +193,7 @@ export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
       }
       const stream = new MediaStream(audioTracks);
       tabStreamRef.current = stream;
+      setTabStream(stream);
       const socket = openDeepgramSocket(key, (text, isFinal) => upsertEntry("them", text, isFinal));
       tabSocketRef.current = socket;
       socket.onopen = () => {
@@ -210,6 +219,8 @@ export function useLiveMeetingTranscript(): UseLiveMeetingTranscriptResult {
     configured,
     micActive,
     tabAudioActive,
+    micStream,
+    tabStream,
     entries,
     fullTranscript,
     error,
