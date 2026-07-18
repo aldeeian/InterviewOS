@@ -3,40 +3,42 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f7f7fb;
-  --foreground: #14131f;
+  --background: #fafafa;
+  --foreground: #0a0a0a;
   --card: #ffffff;
-  --card-foreground: #14131f;
-  --border: #e5e4ee;
-  --muted: #f0eff8;
-  --muted-foreground: #6b6a80;
-  --primary: #6d5bf6;
+  --card-foreground: #0a0a0a;
+  --border: #e7e7e4;
+  --muted: #f4f4f2;
+  --muted-foreground: #6f6f6a;
+  --primary: #16a34a;
   --primary-foreground: #ffffff;
-  --accent: #16c2a3;
-  --accent-foreground: #06231e;
+  --accent: #052e16;
+  --accent-foreground: #bbf7d0;
   --success: #16a34a;
   --warning: #d97706;
   --danger: #e0405a;
-  --ring: #6d5bf6;
-  --radius: 0.9rem;
+  --ring: #16a34a;
+  --glow: rgba(74, 222, 128, 0.25);
+  --radius: 1rem;
 }
 
 .dark {
-  --background: #0b0b13;
-  --foreground: #edecf7;
-  --card: #131320;
-  --card-foreground: #edecf7;
-  --border: #232236;
-  --muted: #191828;
-  --muted-foreground: #9695ad;
-  --primary: #8a7bff;
-  --primary-foreground: #0b0b13;
-  --accent: #29e0bc;
-  --accent-foreground: #06231e;
-  --success: #34d372;
-  --warning: #f0a828;
-  --danger: #ff5b76;
-  --ring: #8a7bff;
+  --background: #060807;
+  --foreground: #f5f7f5;
+  --card: #0c0f0d;
+  --card-foreground: #f5f7f5;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: #9ca3af;
+  --primary: #4ade80;
+  --primary-foreground: #052e16;
+  --accent: #052e16;
+  --accent-foreground: #bbf7d0;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+  --ring: #4ade80;
+  --glow: rgba(74, 222, 128, 0.18);
 }
 
 @theme inline {
@@ -58,14 +60,15 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 0.25rem);
   --radius-sm: calc(var(--radius) - 0.45rem);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-departure);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-feature-settings: "cv11", "ss01";
 }
 
 * {
@@ -82,4 +85,58 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 999px;
+}
+
+/* Retro pixel-mono accent (Departure Mono) */
+.font-departure {
+  font-family: var(--font-departure), monospace;
+}
+
+/* Section kicker label: [ LIKE THIS ] */
+.kicker {
+  font-family: var(--font-departure), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Hero headline gradient text */
+.text-hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    var(--foreground),
+    color-mix(in srgb, var(--foreground) 55%, transparent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Soft light beams for dark hero sections */
+.beam {
+  position: absolute;
+  pointer-events: none;
+  filter: blur(40px);
+  mix-blend-mode: plus-lighter;
+  background: linear-gradient(
+    to bottom,
+    var(--glow),
+    transparent 70%
+  );
+}
+
+/* Subtle grid backdrop */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Green glow ring for primary CTAs */
+.glow-primary {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent),
+    0 0 24px -4px var(--glow);
 }

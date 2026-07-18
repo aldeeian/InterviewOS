@@ -21,8 +21,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card/40 md:flex">
         <Link href="/" className="flex items-center gap-2 px-6 py-5">
           <Sparkles className="h-5 w-5 text-primary" />
-          <span className="font-semibold tracking-tight">InterviewOS</span>
+          <span className="font-semibold tracking-tight">
+            Interview<span className="font-departure text-primary">OS</span>
+          </span>
         </Link>
+        <span className="kicker px-6 pt-2 pb-2">[ Menu ]</span>
         <nav className="flex flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href.split("/").slice(0, 2).join("/"));
@@ -32,10 +35,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-full px-4 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "border border-primary/25 bg-primary/10 text-primary"
+                    : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -44,8 +47,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto flex items-center justify-between px-6 py-4 text-xs text-muted-foreground">
-          <span>Local &amp; private</span>
+        <div className="mt-auto flex items-center justify-between px-6 py-4">
+          <span className="kicker">Local &amp; private</span>
           <ThemeToggle />
         </div>
       </aside>
@@ -54,18 +57,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
           <Link href="/" className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <span className="font-semibold">InterviewOS</span>
+            <span className="font-semibold">
+              Interview<span className="font-departure text-primary">OS</span>
+            </span>
           </Link>
           <ThemeToggle />
         </header>
         <nav className="flex items-center gap-1 overflow-x-auto border-b border-border px-3 py-2 md:hidden">
           {NAV_ITEMS.map((item) => {
+            const active = pathname.startsWith(item.href.split("/").slice(0, 2).join("/"));
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex shrink-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                className={cn(
+                  "flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition-colors",
+                  active
+                    ? "border border-primary/25 bg-primary/10 text-primary"
+                    : "border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
